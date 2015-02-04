@@ -69,8 +69,6 @@ var svg = d3.select("div#mainbox").append("svg")
 drawBackground(svg);
 
   d3.xhr('sounding.txt').get(function (err, response) {
-
-  for (k=0; k<=48; k++) {
     var dirtyCSV = response.responseText;
     var cleanCSV = dirtyCSV.split('\n').join('\n');
     var parsedCSV = d3.csv.parse(cleanCSV);
@@ -237,9 +235,7 @@ drawBackground(svg);
       focus.select("text").text(Math.round(d.temp)+"°C");
       focus2.select("text").text(Math.round(d.dwpt)+"°C");
   }
-     
-  } //end 48 for loop
-          
+
   });
        
 </script>
