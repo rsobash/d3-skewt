@@ -130,14 +130,14 @@ drawBackground(svg);
     // Draw temperature
 	svg.append("path")
         //.attr("transform", "translate(0," + h + ") skewX(-30) translate(0,-" + h + ")")
-          .attr("class", "temp sounding rollover"+k)
+          .attr("class", "temp sounding")
           .attr("clip-path", "url(#clipper)")
           .attr("d", line(parsedCSV));
           
     // Draw dew point temperature
     svg.append("path")
           //.attr("transform", "translate(0," + h + ") skewX(-30) translate(0,-" + h + ")")
-          .attr("class", "dwpt sounding rollover"+k)
+          .attr("class", "dwpt sounding")
           .attr("clip-path", "url(#clipper)")
           .attr("d", line2(parsedCSV));
     
