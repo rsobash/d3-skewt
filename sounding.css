@@ -21,14 +21,12 @@ body {
   fill: none;
   stroke: red;
   stroke-width: 2px;
-  display: none;
 }
 
 .dwpt {
   fill: none;
   stroke: green;
   stroke-width: 2px;
-  display: none;
 }
 
 .gridline, .tempzero {
@@ -60,4 +58,3 @@ body {
 
 div.rollover { padding: 5px 4px 5px 4px; display: inline; cursor: pointer;}
 div.rollover:hover { background-color: #EFEFEF; }
-.rollover0 { display: block; }
