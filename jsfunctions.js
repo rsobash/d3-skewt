@@ -1,4 +1,3 @@
-
 function drawBackground(svg) {
 
 var dryline = d3.svg.line()
