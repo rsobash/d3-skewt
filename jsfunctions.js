@@ -1,4 +1,8 @@
-function drawBackground(svg) {
+
+function drawBackground() {
+
+var svghodo = d3.select("div#hodobox svg g");
+var svg = d3.select("div#mainbox svg g");
 
 var dryline = d3.svg.line()
     .interpolate("linear")
@@ -64,11 +68,13 @@ svg.selectAll(".dryline")
       .style("stroke", "#aaa")
      .attr("stroke-width", "0.75px");
     
-   svg.selectAll(".circles").data(d3.range(10,90,10))
-       .enter().append("circle")
-       .attr("cx", 450)
-       .attr("cy", 100)
-       .attr("r", function(d) { return d; })
+    // draw hodograph background
+   svghodo.selectAll(".circles")
+       .data(d3.range(10,100,10))
+    .enter().append("circle")
+       .attr("cx", 150)
+       .attr("cy", 150)
+       .attr("r", function(d) { return r(d); })
        .attr("class", "gridline");
        
        	// Add axes
