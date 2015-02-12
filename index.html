@@ -4,8 +4,9 @@
 <title></title>
 <body>
 
-<div id="container" style="width: 1000px; margin: auto;">
-<div id="mainbox"></div><div id="hodobox"></div>
+<div id="container">
+<div id="mainbox"></div>
+<div id="hodobox"></div>
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.3/d3.min.js"></script>
@@ -68,7 +69,7 @@ var bisectTemp = d3.bisector(function(d) { return d.press; }).left;
 // create svg container for sounding
 var svg = d3.select("div#mainbox").append("svg")
       .attr("width", w + m[1] + m[3])
-      .attr("height", h + m[0] + m[2])
+      .attr("height", h + m[0] + m[2])      
     .append("g")
       .attr("transform", "translate(" + m[3] + "," + m[0] + ")");
     
@@ -82,10 +83,12 @@ var svghodo = d3.select("div#hodobox").append("svg")
 var svgtext = d3.select("div#hodobox").append("svg").attr("width", 300).attr("height", 400).append("g");      
 
 drawBackground();
+var skewtgroup = svg.append("g").attr("class", "skewt"); // put skewt lines in this group
+var barbgroup  = svg.append("g").attr("class", "windbarb"); // put barbs in this group
 
 d3.xhr('test_OUN_fhr18').get(function (err, response) {
     var alldata = parseData(response);
-    
+
     for (var i=0; i<=10; i++) {
 	  parsedCSV = alldata[i].filter(function(d) { return (d.temp > -1000 && d.dwpt > -1000); });
 	  barbs = parsedCSV.filter(function(d) { return (d.wdir >= 0 && d.wspd >= 0 && d.press >= topp); });
@@ -127,14 +130,14 @@ function parseData(response) {
 function drawLines(mem) {
     k = 0;
     // Draw temperature
-	svg.append("path")
+	skewtgroup.append("path")
         //.attr("transform", "translate(0," + h + ") skewX(-30) translate(0,-" + h + ")")
           .attr("class", function(d) { return (mem<10) ? "temp sounding member rollover"+k : "temp sounding mean rollover"+k })
           .attr("clip-path", "url(#clipper)")
           .attr("d", line(parsedCSV));
           
     // Draw dew point temperature
-    svg.append("path")
+    skewtgroup.append("path")
           //.attr("transform", "translate(0," + h + ") skewX(-30) translate(0,-" + h + ")")
           .attr("class", function(d) { return (mem<10) ? "dwpt sounding member rollover"+k : "dwpt sounding mean rollover"+k })
           .attr("clip-path", "url(#clipper)")
@@ -149,7 +152,6 @@ function drawLines(mem) {
        
 function drawBarbs() {
 	// Draw wind barb stems
-	var barbgroup = svg.append("g").attr("class", "windbarb")
   	barbgroup.selectAll("barbs")
     	.data(barbs)
    	.enter().append("line")
@@ -157,8 +159,7 @@ function drawBarbs() {
      	.attr("x2", 0)
      	.attr("y1", 0)
      	.attr("y2", barbsize)
-     	.attr("transform", function(d,i) { return "translate("+w+","+y(d.press)+") rotate("+(d.wdir+180)+")"; })
-     	.attr("class", "barb");
+     	.attr("transform", function(d,i) { return "translate("+w+","+y(d.press)+") rotate("+(d.wdir+180)+")"; });
      
     // Draw wind barb flags and pennants for each stem
 	barbs.forEach(function(d) {
@@ -179,8 +180,7 @@ function drawBarbs() {
      		    .attr("x2", -10)
      		    .attr("y1", px)
      		    .attr("y2", px+4)
-     		    .attr("transform", "translate("+w+","+y(d.press)+") rotate("+(d.wdir+180)+")")
-     		    .attr("class", "barb");
+     		    .attr("transform", "translate("+w+","+y(d.press)+") rotate("+(d.wdir+180)+")");
      		 px -= 3;
      		}
      		
@@ -191,8 +191,7 @@ function drawBarbs() {
      		    .attr("x2", -5)
      		    .attr("y1", px)
      		    .attr("y2", px+2)
-     		    .attr("transform", "translate("+w+","+y(d.press)+") rotate("+(d.wdir+180)+")")
-     		    .attr("class", "barb");
+     		    .attr("transform", "translate("+w+","+y(d.press)+") rotate("+(d.wdir+180)+")");
      		px -= 3;
      		} 	
     });

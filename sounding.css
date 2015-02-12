@@ -2,6 +2,7 @@ body {
   font: 14px helvetica;
   text-align: center;
 }
+#container { width: 1000px; margin: auto; }
 #mainbox, #hodobox { float: left; }
 #hodobox { width: 300px; }
 
@@ -50,8 +51,7 @@ body {
 .key { font-size: 10px; }
 
 .windbarb { stroke: #000; stroke-width: 0.75px; fill: none; }
-.barb { stroke: #000; stroke-width: 0.75px; fill: none; }
-.flag { stroke: #000; stroke-width: 0.75px; fill: #000; }
+.flag { fill: #000; }
 
 .overlay {
   fill: none;

@@ -1,8 +1,8 @@
 
 function drawBackground() {
 
-var svghodo = d3.select("div#hodobox svg g");
-var svg = d3.select("div#mainbox svg g");
+var svghodo = d3.select("div#hodobox svg g").append("g").attr("class", "hodobg");
+var svg = d3.select("div#mainbox svg g").append("g").attr("class", "skewtbg");
 
 var dryline = d3.svg.line()
     .interpolate("linear")
