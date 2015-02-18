@@ -51,7 +51,8 @@ body {
 
 .barline { stroke: #000; stroke-width: 0.5px; }
 .rectline { fill: #000;}
-.index { font-size: 11px; }
+.index { font-size: 13px; }
+.header { font-weight: bold; font-size: 11px;}
 .hodolabels { font-size: 9px; opacity: 0.5;}
 .key { font-size: 10px; }
 

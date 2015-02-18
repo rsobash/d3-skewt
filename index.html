@@ -33,9 +33,9 @@ $(document).ready(function() {
         hododots.data(flattened.slice(i*55,i*55 + 55))
             .attr("cx", function(d) { return r(d.wspd * Math.sin((180+d.wdir)*deg2rad)); })
     	    .attr("cy", function(d) { return -r(d.wspd * Math.cos((180+d.wdir)*deg2rad)); });
-        means.data(indices[i].mean).text(function(d) { return d; });
-        mins.data(indices[i].min).text(function(d) { return d; });
-    	maxs.data(indices[i].max).text(function(d) { return d; });
+        means.data(indices[i].mean).text(function(d,i) { return d+units[i]});
+        mins.data(indices[i].min).text(function(d,i) { return d+units[i]});
+    	maxs.data(indices[i].max).text(function(d,i) { return d+units[i]});
     });
 });
 
@@ -94,11 +94,13 @@ var svghodo = d3.select("div#hodobox").append("svg")
       .attr("height", 300)
     .append("g")
       .attr("transform", "translate(150,150)");
-var svgtext = d3.select("div#hodobox").append("svg").attr("width", 300).attr("height", 400).append("g");      
+      
+var svgtext = d3.select("div#hodobox").append("svg").attr("width", 300).attr("height", 400)
+			.append("g").attr("transform", "translate(0,50)");      
 
 makeBarbTemplates();
 drawBackground();
-drawText();
+drawTextLabels();
 
 var skewtgroup = svg.append("g").attr("class", "skewt"); // put skewt lines in this group
 var barbgroup  = svg.append("g").attr("class", "windbarb"); // put barbs in this group
@@ -132,18 +134,21 @@ d3.json('data_OUN.js', function(err, json) {
 });
 
 d3.json('conv_OUN.js', function(err, json) {
-	var keys = { 'sbcape':[] };
+	var keys = { 'sbcape':[], 'mlcape':[], 'mucape':[], 'shr01':[], 'shr03':[], 'shr06':[], 
+	             'stp':[], 'bunkers_dir':[], 'bunkers_spd':[]};
     indices = [];
     for (var f=0; f<json['sbcape'].length; f+=10) {
       stats = { 'mean':[], 'min':[], 'max':[] } 
       for (var key in keys) {
+        var scaled = (key == 'stp') ? 10 : 1;
         var temp = json[key].slice(f,f+10);
-        stats['min'].push(Math.round(d3.min(temp)));
-        stats['mean'].push(Math.round(d3.mean(temp)));
-        stats['max'].push(Math.round(d3.max(temp)));
+        stats['min'].push(Math.round(d3.min(temp))/scaled);
+        stats['mean'].push(Math.round(d3.mean(temp))/scaled);
+        stats['max'].push(Math.round(d3.max(temp))/scaled);
       }
       indices.push(stats);
     }
+    drawFirstHourText();
 });
 
 function parseDataNew(json) {
@@ -256,6 +261,33 @@ function drawFirstHour() {
     	.attr("transform", function(d,i) { return "translate("+w+","+y(d.press)+") rotate("+(d.wdir+180)+")"; });
 }
 
+function drawFirstHourText() {
+    units = ['', '', '', ' kts', ' kts', ' kts', '', '°', ' kts'];
+    mins = svgtext.selectAll("mins")
+	  .data(indices[0].min).enter().append("text")
+	    .attr('x', 110)
+        .attr('y', function(d,i) { return spacing*i; })
+    	.attr('class', 'index')
+    	.attr('text-anchor', 'middle')
+    	.text(function(d,i) { return d+units[i]});
+    	
+    means = svgtext.selectAll("means")
+	  .data(indices[0].mean).enter().append("text")
+	    .attr('x', 190)
+        .attr('y', function(d,i) { return spacing*i; })
+    	.attr('class', 'index')
+    	.attr('text-anchor', 'middle')
+    	.text(function(d,i) { return d+units[i]});
+    	
+    maxs = svgtext.selectAll("maxs")
+	  .data(indices[0].max).enter().append("text")
+	    .attr('x', 270)
+        .attr('y', function(d,i) { return spacing*i; })
+    	.attr('class', 'index')
+    	.attr('text-anchor', 'middle')
+    	.text(function(d,i) { return d+units[i]});
+}
+
 function drawToolTips() {
   // Draw T/Td tooltips
   var focus = svg.append("g").attr("class", "focus tmpc").style("display", "none");
@@ -292,16 +324,26 @@ function drawToolTips() {
   }
 }
 
-function drawText() {
-	var spacing = 20;
-	var labels = ['SBCAPE', 'MLCAPE', 'MUCAPE', '0-1km Shr', '0-3km Shr', '0-6km Shr', 'STP (fixed)'];
+function drawTextLabels() {
+	spacing = 20;
+	var headers = ['Min', 'Mean', 'Max'];
+	var labels = ['SBCAPE', 'MLCAPE', 'MUCAPE', '0-1km Shr', '0-3km Shr', '0-6km Shr', 'STP (fixed)',
+	              'Bunkers Dir', 'Bunkers Spd'];
     
     svgtext.selectAll("labels")
       .data(labels).enter().append("text")
-        .attr('x', 60)
-        .attr('y', function(d,i) { return spacing*(i+1); })
-    	.attr('class', 'index')
+        .attr('x', 70)
+        .attr('y', function(d,i) { return spacing*i; })
+    	.attr('class', 'index header')
     	.attr('text-anchor', 'end')
+    	.text(function(d) { return d; });
+    	
+    svgtext.selectAll("headers")
+      .data(headers).enter().append("text")
+        .attr('x', function(d,i) { return 110 + 80*i; })
+        .attr('y', -20)
+    	.attr('class', 'index header')
+    	.attr('text-anchor', 'middle')
     	.text(function(d) { return d; });
     	
     //svgtext.selectAll("barline")
@@ -311,28 +353,6 @@ function drawText() {
     //	.attr('y1', function(d,i) { return spacing*(i+1)-4.5; })
     //	.attr('y2', function(d,i) { return spacing*(i+1)-4.5; })
     //	.attr('class', 'barline');
-    	
-    mins = svgtext.selectAll("mins")
-	  .data([20,50,100,50,100,150,75]).enter().append("text")
-	    .attr('x', 100)
-        .attr('y', function(d,i) { return spacing*(i+1); })
-    	.attr('class', 'index')
-    	.attr('text-anchor', 'middle')
-    	.text(function(d) { return d; });
-    means = svgtext.selectAll("means")
-	  .data([20,50,100,50,100,150,75]).enter().append("text")
-	    .attr('x', 160)
-        .attr('y', function(d,i) { return spacing*(i+1); })
-    	.attr('class', 'index')
-    	.attr('text-anchor', 'middle')
-    	.text(function(d) { return d; });
-    maxs = svgtext.selectAll("maxs")
-	  .data([20,50,100,50,100,150,75]).enter().append("text")
-	    .attr('x', 220)
-        .attr('y', function(d,i) { return spacing*(i+1); })
-    	.attr('class', 'index')
-    	.attr('text-anchor', 'middle')
-    	.text(function(d) { return d; });
      	
     //svgtext.selectAll("keys")
     //  .data([0,0,0,0,0,0,0]).enter().append("text")
