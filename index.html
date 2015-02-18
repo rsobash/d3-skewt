@@ -106,10 +106,9 @@ var hodogroup = svghodo.append("g").attr("class", "hodo"); // put hodo stuff in 
 
 d3.json('data_OUN.js', function(err, json) {
     parseDataNew(json);
-    
+        
 	hodobarbstest = [], tlinetest = [], interpdots = [], barbstest = [];
     for (var hr=0; hr<=48; hr++) {
-    
 	    var temp = [], temp2 = [], temp3 = [];
         for (var mem=0; mem<=9; mem++) {
 	        parsedCSV = alldata[mem][hr].filter(function(d) { return (d.temp > -1000 && d.dwpt > -1000); });
@@ -127,7 +126,6 @@ d3.json('data_OUN.js', function(err, json) {
         tlinetest.push(temp2);
         barbstest.push(temp3);
     }
-    
     // need this for dots for some reason
 	flattened = interpdots.reduce(function(a,b) { return a.concat(b); });
 	drawFirstHour();
@@ -153,18 +151,20 @@ function parseDataNew(json) {
     interpobjects = [];
     alldata = json['tmpc'].map(function(c,k) {
     	return c.map(function(d,i) {
-        	var obj = d.map(function(e,j) { 
-    	    	return { press: +json.pres[k][i][j],
+        	var obj = d.map(function(e,j) {
+    	    	return {
+    	    	     press: +json.pres[k][i][j],
     			     hght: +json.hght[k][i][j],
     	             temp: +json.tmpc[k][i][j]/10,
     	             dwpt: +json.dwpc[k][i][j]/10,
     	             wdir: +json.wdir[k][i][j],
     	             wspd: +json.wspd[k][i][j]/10,
     	             hghtagl: +json.hght[k][i][j] - +json.hght[k][i][0],
-    	             wspdround: Math.round((json.wspd[k][i][j]/10)/5) * 5;,
-				}
+    	             wspdround: Math.round((json.wspd[k][i][j]/10)/5) * 5
+				     }
         	});
-        	// interpolate to given heights
+        	
+        	// interpolate to given heights for each sounding
     		var test = requestedLevels.map(function(d) {
     			if (d == 0) { return obj[0]; }
     			
