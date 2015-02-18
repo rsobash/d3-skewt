@@ -22,20 +22,7 @@ $(document).ready(function() {
         // change class for rollover
         $("body div.rollover ").removeClass("selected");
         $( this ).addClass("selected");
-        
-        // update data for lines, barbs, dots, stats
-        tlines.data(tlinetest[i]).attr("d", line);
-        tdlines.data(tlinetest[i]).attr("d", line2);
-        allbarbs.data(barbstest[i][10])
-        	.attr("xlink:href", function (d) { return "#barb"+d.wspdround; })
-    		.attr("transform", function(d,i) { return "translate("+w+","+y(d.press)+") rotate("+(d.wdir+180)+")"; });
-        holines.data(hodobarbstest[i]).attr("d", hodoline);
-        hododots.data(flattened.slice(i*55,i*55 + 55))
-            .attr("cx", function(d) { return r(d.wspd * Math.sin((180+d.wdir)*deg2rad)); })
-    	    .attr("cy", function(d) { return -r(d.wspd * Math.cos((180+d.wdir)*deg2rad)); });
-        means.data(indices[i].mean).text(function(d,i) { return d+units[i]});
-        mins.data(indices[i].min).text(function(d,i) { return d+units[i]});
-    	maxs.data(indices[i].max).text(function(d,i) { return d+units[i]});
+        updateData(i);
     });
 });
 
@@ -135,7 +122,7 @@ d3.json('data_OUN.js', function(err, json) {
 
 d3.json('conv_OUN.js', function(err, json) {
 	var keys = { 'sbcape':[], 'mlcape':[], 'mucape':[], 'shr01':[], 'srh01':[], 'shr03':[], 'srh03':[], 'shr06':[], 
-	             'srh06':[], 'stp':[], 'bunkers_dir':[], 'bunkers_spd':[]};
+	             'srh06':[], 'stp':[], 'bunkers_dir':[], 'bunkers_spd':[], 'mllclp':[], 'mllclz':[]};
     indices = [];
     for (var f=0; f<json['sbcape'].length; f+=10) {
       stats = { 'mean':[], 'min':[], 'max':[] } 
@@ -250,7 +237,7 @@ function drawFirstHour() {
           
     hododots = hodogroup.selectAll('hododots')
     	.data(flattened.slice(0,55)).enter().append("circle")
-    	.attr("r", function(d, i) { return (i<50) ? 3 : 5 })
+    	.attr("r", function(d, i) { return (i<50) ? 2 : 4 })
     	.attr("cx", function(d, i) { return r(d.wspd * Math.sin((180+d.wdir)*deg2rad)); })
     	.attr("cy", function(d, i) { return -r(d.wspd * Math.cos((180+d.wdir)*deg2rad)); })
     	.attr("class", function(d,i) { return "hododot hgt"+(d.hghtagl/1000) });
@@ -262,9 +249,9 @@ function drawFirstHour() {
 }
 
 function drawFirstHourText() {
-    units = [' J/kg', ' J/kg', ' J/kg', ' kts', '', ' kts', '', ' kts', '', '', '°', ' kts'];
+    units = [' J/kg', ' J/kg', ' J/kg', ' kts', '', ' kts', '', ' kts', '', '', '°', ' kts', ''];
     mins = svgtext.selectAll("mins")
-	  .data(indices[0].min).enter().append("text")
+	  .data(indices[0].min.slice(0,12)).enter().append("text") // only plot first 12 parameters
 	    .attr('x', 110)
         .attr('y', function(d,i) { return spacing*i; })
     	.attr('class', 'index')
@@ -272,7 +259,7 @@ function drawFirstHourText() {
     	.text(function(d,i) { return d+units[i]});
     	
     means = svgtext.selectAll("means")
-	  .data(indices[0].mean).enter().append("text")
+	  .data(indices[0].mean.slice(0,12)).enter().append("text")
 	    .attr('x', 190)
         .attr('y', function(d,i) { return spacing*i; })
     	.attr('class', 'index')
@@ -280,12 +267,38 @@ function drawFirstHourText() {
     	.text(function(d,i) { return d+units[i]});
     	
     maxs = svgtext.selectAll("maxs")
-	  .data(indices[0].max).enter().append("text")
+	  .data(indices[0].max.slice(0,12)).enter().append("text")
 	    .attr('x', 270)
         .attr('y', function(d,i) { return spacing*i; })
     	.attr('class', 'index')
     	.attr('text-anchor', 'middle')
     	.text(function(d,i) { return d+units[i]});
+    
+    lcl = skewtgroup.selectAll("lcl")
+	  .data([indices[0]]).enter().append("rect")
+    	.attr('x', w-70)
+    	.attr('y', function(d,i) { return y(d.min[12])})
+    	.attr('width', 20)
+    	//.attr('height', 3)
+    	.attr('height', function(d,i) { return y(d.max[12]) - y(d.min[12]); })
+    	.attr('class', 'rectline');
+    	
+    lclmean = skewtgroup.selectAll("lclmean")
+	  .data([indices[0]]).enter().append("rect")
+    	.attr('x', w-70)
+    	.attr('y', function(d,i) { return y(d.mean[12])})
+    	.attr('width', 20)
+    	.attr('height', 2)
+    	.attr('class', 'rectline2');
+    	
+    lcltext = skewtgroup.selectAll("lcltext")
+	  .data([indices[0]]).enter().append("text")
+    	.attr('x', w-70)
+    	.attr('y', function(d,i) { return y(d.mean[12])})
+    	.attr('dy', '0.4em')
+    	.attr('text-anchor', 'end')
+    	.attr('class', 'lcltext')
+    	.text(function(d,i) { return d.mean[13] + " m"; });
 }
 
 function drawToolTips() {
@@ -378,6 +391,29 @@ function drawTextLabels() {
     // 	.attr('height', 6)
     // 	.attr('width', function(d,i) { return d/2; })
     // 	.attr('class', 'rectline');
+}
+
+function updateData(i) {
+        // update data for lines, barbs, dots, stats
+        tlines.data(tlinetest[i]).attr("d", line);
+        tdlines.data(tlinetest[i]).attr("d", line2);
+        allbarbs.data(barbstest[i][10])
+        	.attr("xlink:href", function (d) { return "#barb"+d.wspdround; })
+    		.attr("transform", function(d,i) { return "translate("+w+","+y(d.press)+") rotate("+(d.wdir+180)+")"; });
+        holines.data(hodobarbstest[i]).attr("d", hodoline);
+        hododots.data(flattened.slice(i*55,i*55 + 55))
+            .attr("cx", function(d) { return r(d.wspd * Math.sin((180+d.wdir)*deg2rad)); })
+    	    .attr("cy", function(d) { return -r(d.wspd * Math.cos((180+d.wdir)*deg2rad)); });
+        means.data(indices[i].mean).text(function(d,i) { return d+units[i]});
+        mins.data(indices[i].min).text(function(d,i) { return d+units[i]});
+    	maxs.data(indices[i].max).text(function(d,i) { return d+units[i]});
+    	lcl.data([indices[i]])
+    	   .attr('y', function(d,i) { return y(d.min[12])})
+    	   .attr('height', function(d,i) { return y(d.max[12]) - y(d.min[12]); });
+    	lclmean.data([indices[i]]).attr('y', function(d,i) { return y(d.mean[12])});
+    	lcltext.data([indices[i]])
+    	   .attr('y', function(d,i) { return y(d.mean[12])})
+    	   .text(function(d,i) { return d.mean[13] + " m"; });
 }
 
 </script>
