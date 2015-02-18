@@ -134,8 +134,8 @@ d3.json('data_OUN.js', function(err, json) {
 });
 
 d3.json('conv_OUN.js', function(err, json) {
-	var keys = { 'sbcape':[], 'mlcape':[], 'mucape':[], 'shr01':[], 'shr03':[], 'shr06':[], 
-	             'stp':[], 'bunkers_dir':[], 'bunkers_spd':[]};
+	var keys = { 'sbcape':[], 'mlcape':[], 'mucape':[], 'shr01':[], 'srh01':[], 'shr03':[], 'srh03':[], 'shr06':[], 
+	             'srh06':[], 'stp':[], 'bunkers_dir':[], 'bunkers_spd':[]};
     indices = [];
     for (var f=0; f<json['sbcape'].length; f+=10) {
       stats = { 'mean':[], 'min':[], 'max':[] } 
@@ -262,7 +262,7 @@ function drawFirstHour() {
 }
 
 function drawFirstHourText() {
-    units = ['', '', '', ' kts', ' kts', ' kts', '', '°', ' kts'];
+    units = [' J/kg', ' J/kg', ' J/kg', ' kts', '', ' kts', '', ' kts', '', '', '°', ' kts'];
     mins = svgtext.selectAll("mins")
 	  .data(indices[0].min).enter().append("text")
 	    .attr('x', 110)
@@ -326,8 +326,9 @@ function drawToolTips() {
 
 function drawTextLabels() {
 	spacing = 20;
-	var headers = ['Min', 'Mean', 'Max'];
-	var labels = ['SBCAPE', 'MLCAPE', 'MUCAPE', '0-1km Shr', '0-3km Shr', '0-6km Shr', 'STP (fixed)',
+	var headers = ['Ens Min', 'Ens Mean', 'Ens Max'];
+	var labels = ['SBCAPE', 'MLCAPE', 'MUCAPE', '0-1km Shear', '0-1km SRH', '0-3km Shear', '0-3km SRH',
+	              '0-6km Shear', '0-6km SRH', 'STP (fixed)',
 	              'Bunkers Dir', 'Bunkers Spd'];
     
     svgtext.selectAll("labels")
