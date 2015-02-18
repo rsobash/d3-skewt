@@ -26,13 +26,13 @@ $(document).ready(function() {
         // update data for lines, barbs, dots, stats
         tlines.data(tlinetest[i]).attr("d", line);
         tdlines.data(tlinetest[i]).attr("d", line2);
-        allbarbs.data(barbstest[i][0])
+        allbarbs.data(barbstest[i][10])
         	.attr("xlink:href", function (d) { return "#barb"+d.wspdround; })
     		.attr("transform", function(d,i) { return "translate("+w+","+y(d.press)+") rotate("+(d.wdir+180)+")"; });
         holines.data(hodobarbstest[i]).attr("d", hodoline);
-        hododots.data(flattened.slice(i*50,i*50 + 50))
+        hododots.data(flattened.slice(i*55,i*55 + 55))
             .attr("cx", function(d) { return r(d.wspd * Math.sin((180+d.wdir)*deg2rad)); })
-    	   .attr("cy", function(d) { return -r(d.wspd * Math.cos((180+d.wdir)*deg2rad)); });
+    	    .attr("cy", function(d) { return -r(d.wspd * Math.cos((180+d.wdir)*deg2rad)); });
         means.data(indices[i].mean).text(function(d) { return d; });
         mins.data(indices[i].min).text(function(d) { return d; });
     	maxs.data(indices[i].max).text(function(d) { return d; });
@@ -110,7 +110,7 @@ d3.json('data_OUN.js', function(err, json) {
 	hodobarbstest = [], tlinetest = [], interpdots = [], barbstest = [];
     for (var hr=0; hr<=48; hr++) {
 	    var temp = [], temp2 = [], temp3 = [];
-        for (var mem=0; mem<=9; mem++) {
+        for (var mem=0; mem<=10; mem++) {
 	        parsedCSV = alldata[mem][hr].filter(function(d) { return (d.temp > -1000 && d.dwpt > -1000); });
 	        barbs = parsedCSV.filter(function(d) { return (d.wdir >= 0 && d.wspd >= 0 && d.press >= topp); });
 	        hodobarbs = barbs.filter(function(d) { return (d.press >= 200); });
@@ -244,14 +244,14 @@ function drawFirstHour() {
     	.attr("d", hodoline);
           
     hododots = hodogroup.selectAll('hododots')
-    	.data(flattened.slice(0,50)).enter().append("circle")
-    	.attr("r", 3)
+    	.data(flattened.slice(0,55)).enter().append("circle")
+    	.attr("r", function(d, i) { return (i<50) ? 3 : 5 })
     	.attr("cx", function(d, i) { return r(d.wspd * Math.sin((180+d.wdir)*deg2rad)); })
     	.attr("cy", function(d, i) { return -r(d.wspd * Math.cos((180+d.wdir)*deg2rad)); })
     	.attr("class", function(d,i) { return "hododot hgt"+(d.hghtagl/1000) });
     
     allbarbs = barbgroup.selectAll("barbs")
-        .data(barbstest[0][0]).enter().append("use")
+        .data(barbstest[0][10]).enter().append("use")
     	.attr("xlink:href", function (d) { return "#barb"+d.wspdround; })
     	.attr("transform", function(d,i) { return "translate("+w+","+y(d.press)+") rotate("+(d.wdir+180)+")"; });
 }

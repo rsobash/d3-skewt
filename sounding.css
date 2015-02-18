@@ -31,8 +31,8 @@ body {
   stroke: green;
   stroke-width: 2px;
 }
-.member   { stroke-width: 1.5px; opacity: 0.5;}
-.mean     { stroke-width: 2.5px;}
+.member   { stroke-width: 1.5px; opacity: 0.4;}
+.mean     { stroke-width: 2.5px; }
 .hodoline { stroke: #aaa; fill: none; opacity: 0.5; }
 .hodoline.mean { stroke: #000; opacity: 1.0;}
 .hododot {  stroke: #000; opacity: 0.75; }
