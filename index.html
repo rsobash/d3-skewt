@@ -16,7 +16,6 @@
 <script type="text/javascript">
 
 $(document).ready(function() {
-    $(" body ").data( "currsnd", 0);
     $(" div.rollover " ).mouseover(function() {
         var i = $( this ).attr('id');
         
@@ -154,11 +153,7 @@ function parseDataNew(json) {
     interpobjects = [];
     alldata = json['tmpc'].map(function(c,k) {
     	return c.map(function(d,i) {
-        	var obj = d.map(function(e,j) {
-        	    var rounded = Math.round((json.wspd[k][i][j]/10)/5) * 5;
-        	    //var flags = Math.floor(rounded/50);
-        	    //var pennants = Math.floor((rounded - flags*50)/10);
-        	    //var halfpennants = Math.floor((rounded - flags*50 - pennants*10)/5);
+        	var obj = d.map(function(e,j) { 
     	    	return { press: +json.pres[k][i][j],
     			     hght: +json.hght[k][i][j],
     	             temp: +json.tmpc[k][i][j]/10,
@@ -166,11 +161,7 @@ function parseDataNew(json) {
     	             wdir: +json.wdir[k][i][j],
     	             wspd: +json.wspd[k][i][j]/10,
     	             hghtagl: +json.hght[k][i][j] - +json.hght[k][i][0],
-    	             wspdround: rounded,
-    	             //flags: flags,
-				     //pennants: pennants,
-				     //halfpennants: halfpennants,
-				     //barbsum: (flags + pennants + halfpennants) 
+    	             wspdround: Math.round((json.wspd[k][i][j]/10)/5) * 5;,
 				}
         	});
         	// interpolate to given heights
