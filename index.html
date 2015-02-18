@@ -3,6 +3,7 @@
 <link rel="stylesheet" type="text/css" href="sounding.css">
 <title></title>
 <body>
+<div class="rollover selected" id="0">00</div><div class="rollover" id="1">01</div><div class="rollover" id="2">02</div><div class="rollover" id="3">03</div><div class="rollover" id="4">04</div><div class="rollover" id="5">05</div><div class="rollover" id="6">06</div><div class="rollover" id="7">07</div><div class="rollover" id="8">08</div><div class="rollover" id="9">09</div><div class="rollover" id="10">10</div><div class="rollover" id="11">11</div><div class="rollover" id="12">12</div><div class="rollover" id="13">13</div><div class="rollover" id="14">14</div><div class="rollover" id="15">15</div><div class="rollover" id="16">16</div><div class="rollover" id="17">17</div><div class="rollover" id="18">18</div><div class="rollover" id="19">19</div><div class="rollover" id="20">20</div><div class="rollover" id="21">21</div><div class="rollover" id="22">22</div><div class="rollover" id="23">23</div><div class="rollover" id="24">24</div><div class="rollover" id="25">25</div><div class="rollover" id="26">26</div><div class="rollover" id="27">27</div><div class="rollover" id="28">28</div><div class="rollover" id="29">29</div><div class="rollover" id="30">30</div><div class="rollover" id="31">31</div><div class="rollover" id="32">32</div><div class="rollover" id="33">33</div><div class="rollover" id="34">34</div><div class="rollover" id="35">35</div><div class="rollover" id="36">36</div><div class="rollover" id="37">37</div><div class="rollover" id="38">38</div><div class="rollover" id="39">39</div><div class="rollover" id="40">40</div><div class="rollover" id="41">41</div><div class="rollover" id="42">42</div><div class="rollover" id="43">43</div><div class="rollover" id="44">44</div><div class="rollover" id="45">45</div><div class="rollover" id="46">46</div><div class="rollover" id="47">47</div><div class="rollover" id="48">48</div>
 
 <div id="container">
 <div id="mainbox"></div>
@@ -19,9 +20,26 @@ $(document).ready(function() {
     $(" div.rollover " ).mouseover(function() {
         var i = $( this ).attr('id');
         data = $(" body ").data();
-        $('.rollover'+data.currsnd).hide();
-        $('.rollover'+i).show();
-        $(" body ").data( "currsnd", i);
+        //$('.hour'+data.currsnd).hide();
+        //$('.hour'+i).show();
+        //$(" body ").data( "currsnd", i);
+        // change class for rollover
+        $("body div.rollover ").removeClass("selected");
+        $( this ).addClass("selected");
+        
+        // update data for lines, barbs, dots, stats
+        tlines.data(tlinetest[i]).attr("d", line);
+        tdlines.data(tlinetest[i]).attr("d", line2);
+        allbarbs.data(barbstest[i][0])
+        	.attr("xlink:href", function (d) { return "#barb"+d.wspdround; })
+    		.attr("transform", function(d,i) { return "translate("+w+","+y(d.press)+") rotate("+(d.wdir+180)+")"; });
+        holines.data(hodobarbstest[i]).attr("d", hodoline);
+        hododots.data(flattened.slice(i*50,i*50 + 50))
+            .attr("cx", function(d) { return r(d.wspd * Math.sin((180+d.wdir)*deg2rad)); })
+    	   .attr("cy", function(d) { return -r(d.wspd * Math.cos((180+d.wdir)*deg2rad)); });
+        means.data(indices[i].mean).text(function(d) { return d; });
+        mins.data(indices[i].min).text(function(d) { return d; });
+    	maxs.data(indices[i].max).text(function(d) { return d; });
     });
 });
 
@@ -29,7 +47,8 @@ var m = [30, 40, 20, 35],
     w = 700 - m[1] - m[3],
     h = 700 - m[0] - m[2];
 
-var tan = Math.tan(55*(Math.PI/180)),
+var deg2rad = (Math.PI/180);
+var tan = Math.tan(55*deg2rad),
     basep = 1050,
     topp = 100,
     plines = [1000,850,700,500,300,200,100]
@@ -39,7 +58,7 @@ var tan = Math.tan(55*(Math.PI/180)),
 // Scales and axes. Note the inverted domain for the y-scale: bigger is up!
 var x = d3.scale.linear().range([0, w]).domain([-45,50]),
     y = d3.scale.log().range([0, h]).domain([topp, basep])
-    r = d3.scale.linear().range([0,150]).domain([0,100]),
+    r = d3.scale.linear().range([0,300]).domain([0,150]),
     y2 = d3.scale.linear(),
     xAxis = d3.svg.axis().scale(x).tickSize(0,0).ticks(10).orient("bottom"),
     yAxis = d3.svg.axis().scale(y).tickSize(0,0).tickValues(plines)
@@ -78,28 +97,101 @@ var svghodo = d3.select("div#hodobox").append("svg")
       .attr("width", 300)
       .attr("height", 300)
     .append("g")
-      .attr("transform", "translate(0,0)");
-      
+      .attr("transform", "translate(150,150)");
 var svgtext = d3.select("div#hodobox").append("svg").attr("width", 300).attr("height", 400).append("g");      
 
+makeBarbTemplates();
 drawBackground();
+drawText();
+
 var skewtgroup = svg.append("g").attr("class", "skewt"); // put skewt lines in this group
 var barbgroup  = svg.append("g").attr("class", "windbarb"); // put barbs in this group
+var hodogroup = svghodo.append("g").attr("class", "hodo"); // put hodo stuff in this group
 
-d3.xhr('test_OUN_fhr18').get(function (err, response) {
-    var alldata = parseData(response);
-
-    for (var i=0; i<=10; i++) {
-	  parsedCSV = alldata[i].filter(function(d) { return (d.temp > -1000 && d.dwpt > -1000); });
-	  barbs = parsedCSV.filter(function(d) { return (d.wdir >= 0 && d.wspd >= 0 && d.press >= topp); });
-	  hodobarbs = barbs.filter(function(d) { return (d.press >= 175); });
-	  parsedCSVreversed = parsedCSV.reverse(); // bisector needs ascending array
+//d3.xhr('test_OUN_fhr18').get(function (err, response) {
+d3.json('data_OUN.js', function(err, json) {
+    //var alldata = parseData(response);
+    parseDataNew(json);
+	hodobarbstest = [], tlinetest = [], interpdots = [], barbstest = [];
+    for (var hr=0; hr<=48; hr++) {
+      //skewtgroup = svg.append("g").attr("class", "skewt hour"+hr); // put skewt lines in this group
+	  //barbgroup  = svg.append("g").attr("class", "windbarb hour"+hr); // put barbs in this group
+	  //hodogroup  = svghodo.append("g").attr("class", "hodo hour"+hr);
+	  //hodolines = hodogroup.append("g");
+	  //hododots = hodogroup.append("g"); // want dots on top
 	  
-	  drawLines(i);
-      if (i==10) { drawBarbs(); drawToolTips(); drawText();} // only draw tooltips and barbs for ens mean
+	var temp = [], temp2 = [], temp3 = [];
+    for (var mem=0; mem<=9; mem++) {
+	  parsedCSV = alldata[mem][hr].filter(function(d) { return (d.temp > -1000 && d.dwpt > -1000); });
+	  barbs = parsedCSV.filter(function(d) { return (d.wdir >= 0 && d.wspd >= 0 && d.press >= topp); });
+	  hodobarbs = barbs.filter(function(d) { return (d.press >= 200); });
+	  //parsedCSVreversed = parsedCSV.reverse(); // bisector needs ascending array
+	  //interpdots = interpobjects[hr + 49*mem];
+	  
+	  temp.push(hodobarbs);
+	  temp2.push(parsedCSV);
+	  temp3.push(barbs);
+	  interpdots.push(interpobjects[hr + 49*mem]);
+
+	  //drawLines(mem);
+	  //drawHodoDots();
+      //if (mem==1) { drawBarbs(); } // only draw tooltips and barbs for ens mean
+      //drawToolTips();
+    }
+    hodobarbstest.push(temp);
+    tlinetest.push(temp2);
+    barbstest.push(temp3);
+    }
+	flattened = interpdots.reduce(function(a,b) { return a.concat(b); });
+	
+    // draw initial set of lines
+    tlines = skewtgroup.selectAll("tlines")
+        .data(tlinetest[0]).enter().append("path")
+        //.attr("transform", "translate(0," + h + ") skewX(-30) translate(0,-" + h + ")")
+          .attr("class", function(d,i) { return (i<10) ? "temp member" : "temp mean" })
+          .attr("clip-path", "url(#clipper)")
+          .attr("d", line);
+          
+    tdlines = skewtgroup.selectAll("tdlines")
+        .data(tlinetest[0]).enter().append("path")
+        //.attr("transform", "translate(0," + h + ") skewX(-30) translate(0,-" + h + ")")
+          .attr("class", function(d,i) { return (i<10) ? "dwpt member" : "dwpt mean" })
+          .attr("clip-path", "url(#clipper)")
+          .attr("d", line2);
+    
+    holines = hodogroup.selectAll("hodolines")
+        .data(hodobarbstest[0]).enter().append("path")
+    	.attr("class", function(d,i) { return (i<10) ? "hodoline member" : "hodoline mean" })
+    	.attr("d", hodoline);
+          
+    hododots = hodogroup.selectAll('hododots')
+    	.data(flattened.slice(0,50)).enter().append("circle")
+    	.attr("r", 3)
+    	.attr("cx", function(d, i) { return r(d.wspd * Math.sin((180+d.wdir)*deg2rad)); })
+    	.attr("cy", function(d, i) { return -r(d.wspd * Math.cos((180+d.wdir)*deg2rad)); })
+    	.attr("class", function(d,i) { return "hododot hgt"+(d.hghtagl/1000) });
+    
+    allbarbs = barbgroup.selectAll("barbs")
+        .data(barbstest[0][0]).enter().append("use")
+    	.attr("xlink:href", function (d) { return "#barb"+d.wspdround; })
+    	.attr("transform", function(d,i) { return "translate("+w+","+y(d.press)+") rotate("+(d.wdir+180)+")"; });
+});
+
+d3.json('conv_OUN.js', function(err, json) {
+	var keys = { 'sbcape':[] };
+    indices = [];
+    for (var f=0; f<json['sbcape'].length; f+=10) {
+      stats = { 'mean':[], 'min':[], 'max':[] } 
+      for (var key in keys) {
+        var temp = json[key].slice(f,f+10);
+        stats['min'].push(Math.round(d3.min(temp)));
+        stats['mean'].push(Math.round(d3.mean(temp)));
+        stats['max'].push(Math.round(d3.max(temp)));
+      }
+      indices.push(stats);
     }
 });
-  
+
 function parseData(response) {
     var dirtyCSV = response.responseText.split('MEMBER').slice(1);
     var parsedCSV = dirtyCSV.map(function(data) {
@@ -125,29 +217,78 @@ function parseData(response) {
 	});
 	
 	return parsedCSV
-}  
+}
+
+function parseDataNew(json) {
+    requestedLevels = [0,1,3,6,9]; // levels in km agl
+    interpobjects = [];
+    alldata = json['tmpc'].map(function(c,k) {
+    	return c.map(function(d,i) {
+        	var obj = d.map(function(e,j) {
+        	    var rounded = Math.round((json.wspd[k][i][j]/10)/5) * 5;
+        	    //var flags = Math.floor(rounded/50);
+        	    //var pennants = Math.floor((rounded - flags*50)/10);
+        	    //var halfpennants = Math.floor((rounded - flags*50 - pennants*10)/5);
+    	    	return { press: +json.pres[k][i][j],
+    			     hght: +json.hght[k][i][j],
+    	             temp: +json.tmpc[k][i][j]/10,
+    	             dwpt: +json.dwpc[k][i][j]/10,
+    	             wdir: +json.wdir[k][i][j],
+    	             wspd: +json.wspd[k][i][j]/10,
+    	             hghtagl: +json.hght[k][i][j] - +json.hght[k][i][0],
+    	             wspdround: rounded,
+    	             //flags: flags,
+				     //pennants: pennants,
+				     //halfpennants: halfpennants,
+				     //barbsum: (flags + pennants + halfpennants) 
+				}
+        	});
+        	// interpolate to given heights
+    		var test = requestedLevels.map(function(d) {
+    			if (d == 0) { return obj[0]; }
+    			
+    			d = 1000*d+obj[0].hght; // want height AGL
+    		    for (i=0; i<=obj.length; i++) {
+    		        if (obj[i].hght > d) { var closeindex = i; break; } // since hghts increase monotonically
+    		    }
+    		    var interp = d3.interpolateObject(obj[i-1],obj[i]); // interp btw two levels
+    		    var half = interp(1-(d - obj[i].hght)/(obj[i-1].hght - obj[i].hght));
+    		    return half
+    		});
+    		interpobjects.push(test);
+    	    return obj;
+    	});
+    });
+}
 
 function drawLines(mem) {
-    k = 0;
     // Draw temperature
 	skewtgroup.append("path")
         //.attr("transform", "translate(0," + h + ") skewX(-30) translate(0,-" + h + ")")
-          .attr("class", function(d) { return (mem<10) ? "temp sounding member rollover"+k : "temp sounding mean rollover"+k })
+          .attr("class", function(d) { return (mem<10) ? "temp member" : "temp mean" })
           .attr("clip-path", "url(#clipper)")
           .attr("d", line(parsedCSV));
           
     // Draw dew point temperature
     skewtgroup.append("path")
           //.attr("transform", "translate(0," + h + ") skewX(-30) translate(0,-" + h + ")")
-          .attr("class", function(d) { return (mem<10) ? "dwpt sounding member rollover"+k : "dwpt sounding mean rollover"+k })
+          .attr("class", function(d) { return (mem<10) ? "dwpt member" : "dwpt mean" })
           .attr("clip-path", "url(#clipper)")
           .attr("d", line2(parsedCSV));
     
     // Draw hodoline
-    svghodo.append("path")
-    	.attr("class", function(d) { return (mem<10) ? "hodoline member rollover"+k : "hodoline mean rollover"+k })
-    	.attr("d", hodoline(hodobarbs))
-    	.attr("transform", "translate(150,150)");
+    hodolines.append("path")
+    	.attr("class", function(d) { return (mem<10) ? "hodoline member" : "hodoline mean" })
+    	.attr("d", hodoline(hodobarbs));
+}
+
+function drawHodoDots() {
+    hododots.selectAll('test').data(interpdots).enter()
+    	.append("circle")
+    	.attr("r", 3)
+    	.attr("cx", function(d, i) { return r(d.wspd * Math.sin((180+d.wdir)*deg2rad)); })
+    	.attr("cy", function(d, i) { return -r(d.wspd * Math.cos((180+d.wdir)*deg2rad)); })
+    	.attr("class", function(d,i) { return "hododot hgt"+requestedLevels[i] });
 }
        
 function drawBarbs() {
@@ -193,7 +334,49 @@ function drawBarbs() {
      		    .attr("y2", px+2)
      		    .attr("transform", "translate("+w+","+y(d.press)+") rotate("+(d.wdir+180)+")");
      		px -= 3;
-     		} 	
+     		}
+    });
+}
+
+function makeBarbTemplates() {
+    var speeds = d3.range(5,105,5);
+    barbdef = svg.append('defs')
+    speeds.forEach(function(d) {
+    	var thisbarb = barbdef.append('g').attr('id', 'barb'+d);
+    	
+    	var flags = Math.floor(d/50);
+        var pennants = Math.floor((d - flags*50)/10);
+        var halfpennants = Math.floor((d - flags*50 - pennants*10)/5);
+        var px = barbsize;
+        	    
+		// Draw wind barb stems
+		thisbarb.append("line").attr("x1", 0).attr("x2", 0).attr("y1", 0).attr("y2", barbsize);
+     
+    	// Draw wind barb flags and pennants for each stem
+	    for (i=0; i<flags; i++) {
+     		thisbarb.append("polyline")
+                .attr("points", "0,"+px+" -10,"+(px)+" 0,"+(px-4))
+     		    .attr("class", "flag");
+     		 px -= 7;
+     	}
+	    // Draw pennants on each barb
+	    for (i=0; i<pennants; i++) {
+    	    thisbarb.append("line")
+     		    .attr("x1", 0)
+     		    .attr("x2", -10)
+     		    .attr("y1", px)
+     		    .attr("y2", px+4)
+     		 px -= 3;
+     	}
+     	// Draw half-pennants on each barb
+        for (i=0; i<halfpennants; i++) {
+    	    thisbarb.append("line")
+     		    .attr("x1", 0)
+     		    .attr("x2", -5)
+     		    .attr("y1", px)
+     		    .attr("y2", px+2)
+     		px -= 3;
+     	}
     });
 }
 
@@ -234,47 +417,70 @@ function drawToolTips() {
 }
 
 function drawText() {
-	var spacing = 35;
-	var labels = ['SBCAPE', 'MLCAPE', 'MUCAPE', '0-1km SHR', '0-3km SHR', '0-6km SHR', 'STP (fixed)'];
+	var spacing = 20;
+	var labels = ['SBCAPE', 'MLCAPE', 'MUCAPE', '0-1km Shr', '0-3km Shr', '0-6km Shr', 'STP (fixed)'];
+    
     svgtext.selectAll("labels")
       .data(labels).enter().append("text")
-        .attr('x', 0)
+        .attr('x', 60)
         .attr('y', function(d,i) { return spacing*(i+1); })
     	.attr('class', 'index')
-    	.attr('text-anchor', 'start')
-    	.text(function(d) { return d; });
-    	
-    svgtext.selectAll("barline")
-	  .data(labels).enter().append("line")
-    	.attr('x1', 8)
-    	.attr('x2', 275)
-    	.attr('y1', function(d,i) { return spacing*(i+1)+6.5; })
-    	.attr('y2', function(d,i) { return spacing*(i+1)+6.5; })
-    	.attr('class', 'barline');
-     	
-    svgtext.selectAll("keys")
-      .data([0,0,0,0,0,0,0]).enter().append("text")
-        .attr('x', 0)
-        .attr('y', function(d,i) { return spacing*(i+1)+10; })
-    	.attr('class', 'key')
-    	.attr('text-anchor', 'start')
-    	.text(function(d) { return d; });
-     	
-    svgtext.selectAll("keys2")
-      .data([5000,5000,5000,100,100,100,10]).enter().append("text")
-        .attr('x', 300)
-        .attr('y', function(d,i) { return spacing*(i+1)+10; })
-    	.attr('class', 'key')
     	.attr('text-anchor', 'end')
     	.text(function(d) { return d; });
     	
-    svgtext.selectAll("rect")
-      .data([20,50,100,50,100,150,75]).enter().append("rect")
-     	.attr('x', function(d,i) { return d; })
-     	.attr('y', function(d,i) { return spacing*(i+1)+4; })
-     	.attr('height', 6)
-     	.attr('width', function(d,i) { return d/2; })
-     	.attr('class', 'rectline');
+    //svgtext.selectAll("barline")
+	//  .data(labels).enter().append("line")
+    //	.attr('x1', 65)
+    //	.attr('x2', 275)
+    //	.attr('y1', function(d,i) { return spacing*(i+1)-4.5; })
+    //	.attr('y2', function(d,i) { return spacing*(i+1)-4.5; })
+    //	.attr('class', 'barline');
+    	
+    mins = svgtext.selectAll("mins")
+	  .data([20,50,100,50,100,150,75]).enter().append("text")
+	    .attr('x', 100)
+        .attr('y', function(d,i) { return spacing*(i+1); })
+    	.attr('class', 'index')
+    	.attr('text-anchor', 'middle')
+    	.text(function(d) { return d; });
+    means = svgtext.selectAll("means")
+	  .data([20,50,100,50,100,150,75]).enter().append("text")
+	    .attr('x', 160)
+        .attr('y', function(d,i) { return spacing*(i+1); })
+    	.attr('class', 'index')
+    	.attr('text-anchor', 'middle')
+    	.text(function(d) { return d; });
+    maxs = svgtext.selectAll("maxs")
+	  .data([20,50,100,50,100,150,75]).enter().append("text")
+	    .attr('x', 220)
+        .attr('y', function(d,i) { return spacing*(i+1); })
+    	.attr('class', 'index')
+    	.attr('text-anchor', 'middle')
+    	.text(function(d) { return d; });
+     	
+    //svgtext.selectAll("keys")
+    //  .data([0,0,0,0,0,0,0]).enter().append("text")
+    //    .attr('x', 0)
+    //    .attr('y', function(d,i) { return spacing*(i+1)+10; })
+    //	.attr('class', 'key')
+    //	.attr('text-anchor', 'start')
+    //	.text(function(d) { return d; });
+     	
+    //svgtext.selectAll("keys2")
+    //  .data([5000,5000,5000,100,100,100,10]).enter().append("text")
+    //    .attr('x', 300)
+    //    .attr('y', function(d,i) { return spacing*(i+1)+10; })
+    //	.attr('class', 'key')
+    //	.attr('text-anchor', 'end')
+    //	.text(function(d) { return d; });
+    	
+    //svgtext.selectAll("rect")
+    //  .data([20,50,100,50,100,150,75]).enter().append("rect")
+    // 	.attr('x', function(d,i) { return d; })
+    // 	.attr('y', function(d,i) { return spacing*(i+1)+4; })
+    // 	.attr('height', 6)
+    // 	.attr('width', function(d,i) { return d/2; })
+    // 	.attr('class', 'rectline');
 }
 
 </script>

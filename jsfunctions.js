@@ -65,21 +65,28 @@ svg.selectAll(".dryline")
      .attr("x2", w-0.5)
      .attr("y1", 0)
      .attr("y2", h)
-      .style("stroke", "#aaa")
-     .attr("stroke-width", "0.75px");
+     .attr("class", "gridline");
     
     // draw hodograph background
    svghodo.selectAll(".circles")
-       .data(d3.range(10,100,10))
+       .data(d3.range(10,80,10))
     .enter().append("circle")
-       .attr("cx", 150)
-       .attr("cy", 150)
+       .attr("cx", 0)
+       .attr("cy", 0)
        .attr("r", function(d) { return r(d); })
        .attr("class", "gridline");
+    svghodo.selectAll("hodolabels")
+	  .data(d3.range(10,80,20)).enter().append("text")
+	    .attr('x', 0)
+        .attr('y', function (d,i) { return r(d); })
+        .attr('dy', '0.4em')
+    	.attr('class', 'hodolabels')
+    	.attr('text-anchor', 'middle')
+    	.text(function(d) { return d+'kts'; });
        
        	// Add axes
     svg.append("g").attr("class", "x axis").attr("transform", "translate(0," + (h-0.5) + ")").call(xAxis);
-    svg.append("g").attr("class", "y axis").attr("transform", "translate(0,0)").call(yAxis);
-    svg.append("g").attr("class", "y axis ticks").attr("transform", "translate(0,0)").call(yAxis2);
+    svg.append("g").attr("class", "y axis").attr("transform", "translate(-0.5,0)").call(yAxis);
+    svg.append("g").attr("class", "y axis ticks").attr("transform", "translate(-0.5,0)").call(yAxis2);
     //svg.append("g").attr("class", "y axis hght").attr("transform", "translate(0,0)").call(yAxis2);
 }
