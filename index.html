@@ -92,6 +92,7 @@ drawTextLabels();
 var skewtgroup = svg.append("g").attr("class", "skewt"); // put skewt lines in this group
 var barbgroup  = svg.append("g").attr("class", "windbarb"); // put barbs in this group
 var hodogroup = svghodo.append("g").attr("class", "hodo"); // put hodo stuff in this group
+drawToolTips();
 
 d3.json('data_OUN.js', function(err, json) {
     parseDataNew(json);
@@ -116,8 +117,10 @@ d3.json('data_OUN.js', function(err, json) {
         barbstest.push(temp3);
     }
     // need this for dots for some reason
+    mouseoverdata = tlinetest[0][10].slice(0).reverse();
 	flattened = interpdots.reduce(function(a,b) { return a.concat(b); });
 	drawFirstHour();
+
 });
 
 d3.json('conv_OUN.js', function(err, json) {
@@ -303,18 +306,18 @@ function drawFirstHourText() {
 
 function drawToolTips() {
   // Draw T/Td tooltips
-  var focus = svg.append("g").attr("class", "focus tmpc").style("display", "none");
+  focus = skewtgroup.append("g").attr("class", "focus tmpc").style("display", "none");
   focus.append("circle").attr("r", 4);
   focus.append("text").attr("x", 9).attr("dy", ".35em");
       
-  var focus2 = svg.append("g").attr("class", "focus dwpc").style("display", "none");
+  focus2 = skewtgroup.append("g").attr("class", "focus dwpc").style("display", "none");
   focus2.append("circle").attr("r", 4);
   focus2.append("text").attr("x", -9).attr("text-anchor", "end").attr("dy", ".35em");
   
-  var focus3 = svg.append("g").attr("class", "focus").style("display", "none");
+  focus3 = skewtgroup.append("g").attr("class", "focus").style("display", "none");
   focus3.append("text").attr("x", 0).attr("text-anchor", "start").attr("dy", ".35em");
 
-  svg.append("rect")
+  skewtgroup.append("rect")
       .attr("class", "overlay")
       .attr("width", w)
       .attr("height", h)
@@ -324,9 +327,9 @@ function drawToolTips() {
       
   function mousemove() {
       var y0 = y.invert(d3.mouse(this)[1]); // get y value of mouse pointer in pressure space
-	  var i = bisectTemp(parsedCSVreversed, y0, 1, parsedCSVreversed.length-1);
-      var d0 = parsedCSVreversed[i - 1];
-      var d1 = parsedCSVreversed[i];
+	  var i = bisectTemp(mouseoverdata, y0, 1, mouseoverdata.length-1);
+      var d0 = mouseoverdata[i - 1];
+      var d1 = mouseoverdata[i];
       var d = y0 - d0.press > d1.press - y0 ? d1 : d0;
       focus.attr("transform", "translate(" + (x(d.temp) + (y(basep)-y(d.press))/tan)+ "," + y(d.press) + ")");
       focus2.attr("transform", "translate(" + (x(d.dwpt) + (y(basep)-y(d.press))/tan)+ "," + y(d.press) + ")");
@@ -414,6 +417,7 @@ function updateData(i) {
     	lcltext.data([indices[i]])
     	   .attr('y', function(d,i) { return y(d.mean[12])})
     	   .text(function(d,i) { return d.mean[13] + " m"; });
+    	mouseoverdata = tlinetest[i][10].slice(0).reverse();
 }
 
 </script>
