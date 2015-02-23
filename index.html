@@ -317,7 +317,7 @@ function drawToolTips() {
   focus3 = skewtgroup.append("g").attr("class", "focus").style("display", "none");
   focus3.append("text").attr("x", 0).attr("text-anchor", "start").attr("dy", ".35em");
 
-  skewtgroup.append("rect")
+  svg.append("rect")
       .attr("class", "overlay")
       .attr("width", w)
       .attr("height", h)
